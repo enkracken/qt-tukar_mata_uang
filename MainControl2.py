@@ -1,12 +1,12 @@
 from UI_Converter import *
 from UI_Table import *
-from ModelDBCurrency import *
+from ModelMariaDBCurrency import *
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import *
 
-objModel = ModelDBCurrency()
+objModel = ModelMariaDBCurrency()
 objModel.start_currency_db()
 
 def signalsConverter(self):

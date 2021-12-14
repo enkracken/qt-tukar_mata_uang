@@ -1,20 +1,27 @@
-import sqlite3, requests, json
+import requests, json
+import MySQLdb as mdb
 
-class ModelDBCurrency:
+class ModelMariaDBCurrency:
     def __init__(self):
-        self.__db = sqlite3.connect('currency.db')
-        self.__cursor = self.__db.cursor()
+        try:
+            self.__db = mdb.connect('localhost','engkrek','','currencydb')
+            self.__cursor = self.__db.cursor()
+            print('Database berhasil terhubung')
+
+        except mdb.Error as e:
+            print('Gagal terhubung ke Database')
+            sys.exit(1)
 
     def start_currency_db(self):
         try:
             self.__cursor.execute('''
-                CREATE TABLE IF NOT EXISTS currency (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                currency_code CHAR NOT NULL,
-                currency_value REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS `currency` (
+                `id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+                `currency_code` CHAR(3) NOT NULL,
+                `currency_value` FLOAT NOT NULL);
             ''')
-        except sqlite3.Error as error:
-            print("gagal membuat table", error)
+        except mdb.Error as error:
+            print(f"gagal membuat table. {error}")
             return f"gagal membuat table. {error}"
 
     def set_all_data(self):# jangan panggil fungsi ini, kecuali sekali di awal. Ntar batas penggunaan gw abis
@@ -31,10 +38,9 @@ class ModelDBCurrency:
                     if forCount < len(self.__hasil["data"].items()):
                         records += ","
 
-                self.__cursor.execute("DELETE FROM currency;")
-                self.__cursor.execute("DELETE FROM sqlite_sequence WHERE name='currency';")
-                self.__cursor.execute(f"INSERT INTO currency (currency_code, currency_value) VALUES ('{self.__hasil['query']['base_currency']}', 1);")
-                self.__cursor.execute(f"INSERT INTO currency (currency_code, currency_value) VALUES{records};")
+                self.__cursor.execute("TRUNCATE `currency`;")
+                self.__cursor.execute(f"INSERT INTO `currency` (currency_code, currency_value) VALUES ('{self.__hasil['query']['base_currency']}', 1);")
+                self.__cursor.execute(f"INSERT INTO `currency` (currency_code, currency_value) VALUES{records};")
                 self.__db.commit()
                 del records
                 del forCount
@@ -48,31 +54,39 @@ class ModelDBCurrency:
             return "Tidak bisa terhubung ke API."
 
     def get_all_data(self):
-        return list(self.__cursor.execute("SELECT * FROM currency;"))
+        self.__cursor.execute("SELECT * FROM `currency`;")
+        result = self.__cursor.fetchall()
+        return list(result)
 
     def set_currency(self, curr_code, curr_val):
         try:
-            self.__cursor.execute(f"UPDATE currency SET currency_value = '{curr_val}' WHERE currency_code = '{curr_code}';")
+            self.__cursor.execute(f"UPDATE `currency` SET `currency_value` = '{curr_val}' WHERE currency_code = '{curr_code}';")
             if self.__cursor.rowcount == 0:
-                self.__cursor.execute(f"INSERT INTO currency (currency_code, currency_value) VALUES('{curr_code}', '{curr_val}');")
+                self.__cursor.execute(f"INSERT INTO `currency` (`currency_code`, `currency_value`) VALUES('{curr_code}', '{curr_val}');")
                 self.__db.commit()
                 return f"Berhasil menginput data {curr_code}"
             else:
                 self.__db.commit()
-                return f"Berhasil mengubah nilai {curr_code}"
-        except sqlite3.Error as error:
+                return "Berhasil menginput data"
+        except mdb.Error as error:
             return f"Gagal memasukkan data {error}"
 
     def get_currency(self, curr_code):
-            result = list(self.__cursor.execute(f"SELECT * FROM currency WHERE currency_code = '{curr_code}';"))
-            if len(result) != 0:
-                return result[0]
-            else:
-                return 0
-    
+        self.__cursor.execute(f"SELECT * FROM `currency` WHERE `currency_code` = '{curr_code}';")
+        result = self.__cursor.fetchall()
+        if len(result) != 0:
+            return list(result)[0]
+        else:
+            return 0
+
     def delete_currency(self, curr_code):
         try:
-            self.__cursor.execute(f"DELETE FROM currency WHERE currency_code = '{curr_code}'")
+            self.__cursor.execute(f"DELETE FROM `currency` WHERE `currency_code` = '{curr_code}'")
             return "Data berhasil di hapus"
         except sqlite3.Error as error:
             return error
+
+# objModel = ModelMariaDBCurrency()
+# print(objModel.get_currency("JPY"))
+# print(objModel.get_all_data())
+# objModel.start_currency_db()
