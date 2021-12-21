@@ -29,7 +29,7 @@ class ModelDBCurrency:
                     forCount += 1
                     records += f" ('{curr_code}', '{str(curr_val)}')"
                     if forCount < len(self.__hasil["data"].items()):
-                        records += ","
+                        records += "," # ini nambahin koma di akhir yg dalam kurung itu ("KODE", 122), yang koma terakhir
 
                 self.__cursor.execute("DELETE FROM currency;")
                 self.__cursor.execute("DELETE FROM sqlite_sequence WHERE name='currency';")
