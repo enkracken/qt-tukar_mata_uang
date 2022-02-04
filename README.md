@@ -15,8 +15,3 @@ Create database `currencydb` first. Then run MainControl2.py. You can also to co
 
 ### With SQLite
 If you have pysqlite 3 installed, just run MainControl.py
-
-Author : Kelompok 2
-University : Institut Teknologi Tangerang Selatan
-Lecturer : Astri Sekar Wijaya, S.Kom., M.TI.
-Subject : Event Based Programming
